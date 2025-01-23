@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingling's Eetavontuur</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #cce7ff;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+            background-color: #e6f7d4;
+            border: 2px solid #333;
+        }
+        h1 {
+            color: #0078D7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lingling's Eetavontuur</h1>
+    <p>Verzamel zoveel mogelijk voedsel binnen de tijd!</p>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let lingling = { x: 280, y: 350, width: 40, height: 40, color: "#FF5733" };
+        let foods = [];
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval, timerInterval;
+
+        // Voedsel genereren
+        function generateFood() {
+            const x = Math.random() * (canvas.width - 20);
+            const y = -20;
+            foods.push({ x, y, width: 20, height: 20, color: "#FFD700" });
+        }
+
+        // Beweeg voedsel
+        function moveFoods() {
+            foods.forEach(food => {
+                food.y += 2; // Voedsel beweegt naar beneden
+            });
+            foods = foods.filter(food => food.y < canvas.height); // Verwijder voedsel dat buiten beeld is
+        }
+
+        // Controleer botsingen
+        function checkCollisions() {
+            foods = foods.filter(food => {
+                if (
+                    lingling.x < food.x + food.width &&
+                    lingling.x + lingling.width > food.x &&
+                    lingling.y < food.y + food.height &&
+                    lingling.y + lingling.height > food.y
+                ) {
+                    score++;
+                    return false; // Verwijder geraakt voedsel
+                }
+                return true;
+            });
+        }
+
+        // Teken elementen
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Teken Lingling
+            ctx.fillStyle = lingling.color;
+            ctx.fillRect(lingling.x, lingling.y, lingling.width, lingling.height);
+
+            // Teken voedsel
+            foods.forEach(food => {
+                ctx.fillStyle = food.color;
+                ctx.fillRect(food.x, food.y, food.width, food.height);
+            });
+
+            // Teken score en timer
+            ctx.fillStyle = "#333";
+            ctx.font = "20px Arial";
+            ctx.fillText(`Score: ${score}`, 10, 30);
+            ctx.fillText(`Tijd: ${timeLeft}`, 500, 30);
+        }
+
+        // Beweeg Lingling
+        function moveLingling(e) {
+            const speed = 20;
+            if (e.key === "ArrowLeft" && lingling.x > 0) {
+                lingling.x -= speed;
+            } else if (e.key === "ArrowRight" && lingling.x + lingling.width < canvas.width) {
+                lingling.x += speed;
+            }
+        }
+
+        // Timer
+        function updateTimer() {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(timerInterval);
+                alert(`Tijd is op! Je score: ${score}`);
+                resetGame();
+            }
+        }
+
+        // Reset spel
+        function resetGame() {
+            lingling.x = 280;
+            foods = [];
+            score = 0;
+            timeLeft = 30;
+            startGame();
+        }
+
+        // Start spel
+        function startGame() {
+            gameInterval = setInterval(() => {
+                generateFood();
+                moveFoods();
+                checkCollisions();
+                draw();
+            }, 1000 / 60);
+
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Luister naar toetsen
+        window.addEventListener("keydown", moveLingling);
+
+        // Start het spel
+        startGame();
+    </script>
+</body>
+</html>
